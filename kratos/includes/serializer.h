@@ -28,9 +28,11 @@
 
 // Project includes
 #include "includes/define.h"
+#include "containers/flags.h"
 #include "includes/ublas_interface.h"
 #include "containers/array_1d.h"
 #include "containers/weak_pointer_vector.h"
+#include "input_output/logger.h"
 //#include "containers/model.h"
 // #include "containers/variable.h"
 
@@ -136,6 +138,9 @@ public:
     /// Pointer definition of Serializer
     KRATOS_CLASS_POINTER_DEFINITION(Serializer);
 
+    KRATOS_DEFINE_LOCAL_FLAG( MPI );
+    KRATOS_DEFINE_LOCAL_FLAG( SHALLOW_GLOBAL_POINTERS_SERIALIZATION );
+
     typedef std::size_t SizeType;
 
     typedef void* (*ObjectFactoryType)();
@@ -155,21 +160,9 @@ public:
     ///@{
 
     /// Default constructor.
-    Serializer(TraceType const& rTrace=SERIALIZER_NO_TRACE) : mpBuffer(new std::stringstream(std::ios::binary|std::ios::in|std::ios::out)), mTrace(rTrace), mNumberOfLines(0)
+    explicit Serializer(BufferType* pBuffer, TraceType const& rTrace=SERIALIZER_NO_TRACE) : 
+        mpBuffer(pBuffer), mTrace(rTrace), mNumberOfLines(0)
     {
-    }
-
-    Serializer(std::string const& Filename, TraceType const& rTrace=SERIALIZER_NO_TRACE) : mTrace(rTrace), mNumberOfLines(0)
-    {
-        std::fstream* p_file = new std::fstream(std::string(Filename+".rest").c_str(), std::ios::binary|std::ios::in|std::ios::out);
-        if(!(*p_file))
-        {
-            delete p_file;
-            p_file = new std::fstream(std::string(Filename+".rest").c_str(), std::ios::binary|std::ios::out);
-        }
-        mpBuffer = p_file;
-        KRATOS_ERROR_IF_NOT(*mpBuffer) << "Error opening input file : "
-                                       << std::string(Filename+".rest") << std::endl;
     }
 
     /// Destructor.
@@ -187,6 +180,15 @@ public:
     ///@}
     ///@name Operations
     ///@{
+    ///This function returns the "trace type" used in initializing the serializer.
+    ///Trace type is one of SERIALIZER_NO_TRACE,SERIALIZER_TRACE_ERROR,SERIALIZER_TRACE_ALL
+    TraceType GetTraceType() const {return mTrace;}
+
+    void SetBuffer(BufferType* pBuffer)
+    {
+        mpBuffer = pBuffer;
+    }
+
     template<class TDataType>
     static void* Create()
     {
@@ -540,7 +542,6 @@ public:
         save_map(rTag, rObject);
     }
 
-
     template<class TDataType>
     void save(std::string const & rTag, TDataType const& rObject)
     {
@@ -791,8 +792,7 @@ public:
             read(read_tag);
             if(read_tag == rTag)
             {
-                std::cout << "In line " << mNumberOfLines;
-                std::cout << " loading " << rTag << " as expected" << std::endl;
+                KRATOS_INFO("Serializer") << "In line " << mNumberOfLines << " loading " << rTag << " as expected" << std::endl;
                 return true;
             }
             else
@@ -821,6 +821,25 @@ public:
         return mpBuffer;
     }
 
+    /**
+     * This function let's one introduce "pValue"  between the objects
+     * which are considered to be already serialized
+     * TODO: verify if this should be a void* or if it is correct that it is taken as TDataType
+     */
+    template<class TDataType>
+    void AddToSavedPointers(const TDataType& pValue) {
+        mSavedPointers.insert(pValue);
+    }
+
+    /**
+     * This function is to be used to inform the serializer that the object
+     * initially stored in "pStoredPosition" is after loading located at pAllocatedPosition
+     * This function is useful to substitute some objects with others that already exist.
+     */
+    void RedirectLoadingPointer(void * pStoredPointer, void * pAllocatedPosition) {
+        mLoadedPointers[pStoredPointer]=pAllocatedPosition;
+    }
+
     static RegisteredObjectsContainerType& GetRegisteredObjects()
     {
         return msRegisteredObjects;
@@ -831,11 +850,19 @@ public:
         return msRegisteredObjectsName;
     }
 
+    void Set(Flags ThisFlag)
+    {
+        mFlags.Set(ThisFlag);
+    }
 
     ///@}
     ///@name Inquiry
     ///@{
 
+    bool Is(Flags const & rOtherFlag) const
+    {
+        return mFlags.Is(rOtherFlag);
+    }
 
     ///@}
     ///@name Input and output
@@ -910,6 +937,8 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    Flags mFlags;
 
     BufferType* mpBuffer;
     TraceType mTrace;
@@ -1329,7 +1358,6 @@ private:
     /// Copy constructor.
     Serializer(Serializer const& rOther);
 
-
     ///@}
 
 }; // Class Serializer
@@ -1376,7 +1404,6 @@ private:
 //       return rOStream;
 //     }
 ///@}
-
 
 }  // namespace Kratos.
 

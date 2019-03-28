@@ -1,18 +1,14 @@
 from __future__ import print_function, absolute_import, division
 
 # Importing the Kratos Library
-import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
-try:
+import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.kratos_utilities as KratosUtils
+
+structural_mechanics_is_available = KratosUtils.CheckIfApplicationsAvailable("StructuralMechanicsApplication")
+if structural_mechanics_is_available:
     import KratosMultiphysics.StructuralMechanicsApplication
-    missing_external_dependencies = False
-    missing_application = ''
-except ImportError as e:
-    missing_external_dependencies = True
-    # extract name of the missing application from the error message
-    import re
-    missing_application = re.search(r'''.*'KratosMultiphysics\.(.*)'.*''',
-                                    '{0}'.format(e)).group(1)
+
 
 class TestLinearMultipointConstraints(KratosUnittest.TestCase):
     def setUp(self):
@@ -95,8 +91,7 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
 
         #define a minimal newton raphson solver
         self.linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
-        #self.builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
-        self.builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolverWithConstraints(
+        self.builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(
             self.linear_solver)
         self.scheme = KratosMultiphysics.ResidualBasedBossakDisplacementScheme(
             -0.01)
@@ -268,6 +263,7 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
 
         self.mp.ProcessInfo[KratosMultiphysics.IS_RESTARTED] = False
 
+    @KratosUnittest.skipUnless(structural_mechanics_is_available,"StructuralMechanicsApplication is not available")
     def test_MPC_Constraints(self):
         dim = 2
         current_model = KratosMultiphysics.Model()
@@ -299,7 +295,6 @@ class TestLinearMultipointConstraints(KratosUnittest.TestCase):
         # Checking the results
         self._check_results()
         self._reset()
-
 
 if __name__ == '__main__':
     KratosUnittest.main()

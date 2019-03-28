@@ -1,9 +1,28 @@
 ﻿from __future__ import print_function, absolute_import, division
 
+import sys
+
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.kratos_utilities as kratos_utils
 
-import sys
+# Use cPickle on Python 2.7 (Note that only the cPickle module is supported on Python 2.7)
+# Source: https://pybind11.readthedocs.io/en/stable/advanced/classes.html
+pickle_message = ""
+try:
+    import cickle as pickle
+    have_pickle_module = True
+except ImportError:
+    if sys.version_info > (3, 0):
+        try:
+            import pickle
+            have_pickle_module = True
+        except ImportError:
+            have_pickle_module = False
+            pickle_message = "No pickle module found"
+    else:
+        have_pickle_module = False
+        pickle_message = "No valid pickle module found"
 
 class TestModel(KratosUnittest.TestCase):
 
@@ -16,9 +35,6 @@ class TestModel(KratosUnittest.TestCase):
         outlet = model_part.CreateSubModelPart("Outlet")
 
         aaa = current_model["Main.Outlet"].CreateSubModelPart("aaa")
-
-        if (sys.version_info < (3, 2)):
-            self.assertRaisesRegex = self.assertRaisesRegexp
 
         self.assertEqual(aaa, current_model["aaa"]) #search by flat name - should be eventually deprecated
 
@@ -55,9 +71,8 @@ class TestModel(KratosUnittest.TestCase):
         other = current_model.CreateModelPart("Other")
         other.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
         other.CreateNewNode(1,0.0,0.0,0.0)
-        
-        KratosMultiphysics.Serializer(file_name, serializer_flag).Save("ModelSerialization",current_model)
 
+        KratosMultiphysics.FileSerializer(file_name, serializer_flag).Save("ModelSerialization",current_model)
 
     def test_model_serialization(self):
 
@@ -67,7 +82,7 @@ class TestModel(KratosUnittest.TestCase):
         self._create_and_save_model(file_name, serializer_flag)
 
         loaded_model = KratosMultiphysics.Model()
-        KratosMultiphysics.Serializer(file_name, serializer_flag).Load("ModelSerialization",loaded_model)
+        KratosMultiphysics.FileSerializer(file_name, serializer_flag).Load("ModelSerialization",loaded_model)
 
         self.assertTrue(loaded_model["Main"].HasNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE))
         self.assertTrue(loaded_model["Other"].HasNodalSolutionStepVariable(KratosMultiphysics.PRESSURE))
@@ -76,6 +91,45 @@ class TestModel(KratosUnittest.TestCase):
         self.assertTrue(loaded_model.HasModelPart("Main.Temp"))
         self.assertTrue(1 in loaded_model["Main"].Nodes)
         self.assertTrue(1 in loaded_model["Other"].Nodes)
+
+        kratos_utils.DeleteFileIfExisting(file_name + ".rest")
+
+    @KratosUnittest.skipUnless(have_pickle_module, "Pickle module error: " + pickle_message)
+    def test_model_serialization_with_pickling(self):
+        current_model = KratosMultiphysics.Model()
+
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
+        model_part.CreateSubModelPart("Inlets")
+        model_part.CreateSubModelPart("Temp")
+        model_part.CreateNewNode(1,0.0,0.0,0.0)
+        other = current_model.CreateModelPart("Other")
+        other.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
+        other.CreateNewNode(1,0.0,0.0,0.0)
+
+        serializer = KratosMultiphysics.StreamSerializer()
+        serializer.Save("ModelSerialization",current_model)
+        del(current_model)
+
+        #pickle dataserialized_data
+        pickled_data = pickle.dumps(serializer, protocol=2) # Second argument is the protocol and is NECESSARY (according to pybind11 docs)
+        del(serializer)
+
+        #overwrite the old serializer with the unpickled one
+        serializer = pickle.loads(pickled_data)
+
+        loaded_model = KratosMultiphysics.Model()
+        serializer.Load("ModelSerialization",loaded_model)
+
+        self.assertTrue(loaded_model["Main"].HasNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE))
+        self.assertTrue(loaded_model["Other"].HasNodalSolutionStepVariable(KratosMultiphysics.PRESSURE))
+
+        self.assertTrue(loaded_model.HasModelPart("Main.Inlets"))
+        self.assertTrue(loaded_model.HasModelPart("Main.Temp"))
+        self.assertTrue(1 in loaded_model["Main"].Nodes)
+        self.assertTrue(1 in loaded_model["Other"].Nodes)
+
+
 
 if __name__ == '__main__':
     KratosUnittest.main()

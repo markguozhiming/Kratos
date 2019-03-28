@@ -49,7 +49,7 @@ namespace Kratos
 /**
  * @brief This struct is used in order to identify when using the hitorical and non historical variables
  */
-struct FindNodalH
+struct FindNodalHSettings
 {
     // Defining clearer options
     constexpr static bool SaveAsHistoricalVariable = true;
@@ -92,7 +92,7 @@ public:
     ///@{
 
     /// Default constructor.
-    FindNodalHProcess(ModelPart& rModelPart) 
+    explicit FindNodalHProcess(ModelPart& rModelPart) 
         : mrModelPart(rModelPart)
     {
     }
