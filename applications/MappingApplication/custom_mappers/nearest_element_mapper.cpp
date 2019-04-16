@@ -222,7 +222,6 @@ std::string NearestElementLocalSystem::PairingInfo(const int EchoLevel, const in
     buffer << "NearestElementLocalSystem based on " << mpNode->Info();
     if (EchoLevel > 1) // TODO leave here?
         buffer << " at Coodinates " << Coordinates()[0] << " | " << Coordinates()[1] << " | " << Coordinates()[2];
-    buffer << " in rank " << CommRank;
     return buffer.str();
 }
 

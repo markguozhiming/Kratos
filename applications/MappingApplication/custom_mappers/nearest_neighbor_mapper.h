@@ -184,10 +184,6 @@ public:
     }
 
     ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
     ///@name Input and output
     ///@{
 
@@ -200,7 +196,12 @@ public:
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "NearestNeighborMapper";
+        rOStream << "NearestNeighborMapper; working in: ";
+        if (TSparseSpace::IsDistributed()){
+            rOStream << "MPI";
+        } else {
+            rOStream << "OpenMP";
+        }
     }
 
     /// Print object's data.
