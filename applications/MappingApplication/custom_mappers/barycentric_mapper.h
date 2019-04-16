@@ -32,19 +32,23 @@ namespace Kratos
 class BarycentricInterfaceInfo : public MapperInterfaceInfo
 {
 public:
-
-    /// Default constructor.
-    BarycentricInterfaceInfo() {}
-
     explicit BarycentricInterfaceInfo(std::size_t NumInterpolationNodes) {
         mNodeIds.resize(NumInterpolationNodes);
         mNeighborCoordinates.resize(3*NumInterpolationNodes);
+        std::fill(mNodeIds.begin(), mNodeIds.end(), -1);
+        std::fill(mNeighborCoordinates.begin(), mNeighborCoordinates.end(), std::numeric_limits<double>::max());
     }
 
     explicit BarycentricInterfaceInfo(const CoordinatesArrayType& rCoordinates,
-                                 const IndexType SourceLocalSystemIndex,
-                                 const IndexType SourceRank)
-        : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank) {}
+                                      const IndexType SourceLocalSystemIndex,
+                                      const IndexType SourceRank,
+                                      const std::size_t NumInterpolationNodes)
+        : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank) {
+        mNodeIds.resize(NumInterpolationNodes);
+        mNeighborCoordinates.resize(3*NumInterpolationNodes);
+        std::fill(mNodeIds.begin(), mNodeIds.end(), -1);
+        std::fill(mNeighborCoordinates.begin(), mNeighborCoordinates.end(), std::numeric_limits<double>::max());
+    }
 
     MapperInterfaceInfo::Pointer Create() const override
     {
@@ -58,7 +62,8 @@ public:
         return Kratos::make_shared<BarycentricInterfaceInfo>(
             rCoordinates,
             SourceLocalSystemIndex,
-            SourceRank);
+            SourceRank,
+            mNodeIds.size());
     }
 
     InterfaceObject::ConstructionType GetInterfaceObjectType() const override
@@ -139,7 +144,6 @@ template<class TSparseSpace, class TDenseSpace>
 class BarycentricMapper : public InterpolativeMapperBase<TSparseSpace, TDenseSpace>
 {
 public:
-
     ///@name Type Definitions
     ///@{
 
@@ -168,8 +172,6 @@ public:
                                      rModelPartDestination,
                                      JsonParameters)
     {
-        this->Initialize();
-
         const std::string interpolation_type = JsonParameters["interpolation_type"].GetString();
         if (interpolation_type == "line") {
             mNumInterpolationNodes = 2;
@@ -178,8 +180,10 @@ public:
         } else if (interpolation_type == "tetrahedra") {
             mNumInterpolationNodes = 4;
         } else {
-            KRATOS_ERROR << std::endl;
+            KRATOS_ERROR << "BarycentricMapper: No \"interpolation_type\" was specified, please select \"line\", \"triangle\" or \"tetrahedra\"" << std::endl;
         }
+
+        this->Initialize();
     }
 
     /// Destructor.
