@@ -36,7 +36,10 @@ public:
     /// Default constructor.
     BarycentricInterfaceInfo() {}
 
-    BarycentricInterfaceInfo(int n) {}
+    BarycentricInterfaceInfo(std::size_t NumInterpolationNodes) {
+        mNodeIds.resize(NumInterpolationNodes);
+        mNeighborCoordinates.resize(3*NumInterpolationNodes);
+    }
 
     explicit BarycentricInterfaceInfo(const CoordinatesArrayType& rCoordinates,
                                  const IndexType SourceLocalSystemIndex,
@@ -45,7 +48,7 @@ public:
 
     MapperInterfaceInfo::Pointer Create() const override
     {
-        return Kratos::make_shared<BarycentricInterfaceInfo>();
+        return Kratos::make_shared<BarycentricInterfaceInfo>(mNodeIds.size());
     }
 
     MapperInterfaceInfo::Pointer Create(const CoordinatesArrayType& rCoordinates,
@@ -166,6 +169,17 @@ public:
                                      JsonParameters)
     {
         this->Initialize();
+
+        const std::string interpolation_type = JsonParameters["interpolation_type"].GetString();
+        if (interpolation_type == "line") {
+            mNumInterpolationNodes = 2;
+        } else if (interpolation_type == "triangle") {
+            mNumInterpolationNodes = 3;
+        } else if (interpolation_type == "tetrahedra") {
+            mNumInterpolationNodes = 4;
+        } else {
+            KRATOS_ERROR << std::endl;
+        }
     }
 
     /// Destructor.
@@ -215,7 +229,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    std::size_t interpolation_nodes;
+    std::size_t mNumInterpolationNodes;
 
     ///@}
 
@@ -233,7 +247,7 @@ private:
 
     MapperInterfaceInfoUniquePointerType GetMapperInterfaceInfo() const override
     {
-        return Kratos::make_unique<BarycentricInterfaceInfo>();
+        return Kratos::make_unique<BarycentricInterfaceInfo>(mNumInterpolationNodes);
     }
 
     ///@}
