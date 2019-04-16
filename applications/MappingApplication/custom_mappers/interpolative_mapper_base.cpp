@@ -205,7 +205,7 @@ void InterpolativeMapperBase<TSparseSpace, TDenseSpace>::PrintPairingInfo(const 
             else if (pairing_status == MapperLocalSystem::PairingStatus::NoInterfaceInfo)
                 warning_msg << " has not found a neighbor";
 
-            KRATOS_WARNING("Mapper") << warning_msg.str() << std::endl;
+            KRATOS_WARNING_ALL_RANKS("Mapper") << warning_msg.str() << std::endl;
 
             // reset the stringstream
             warning_msg.str( std::string() );
