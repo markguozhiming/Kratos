@@ -9,6 +9,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import the tests or test_classes to create the suits
 import test_nearest_neighbor_mapper
 import test_nearest_element_mapper
+import test_barycentric_mapper
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -43,6 +44,13 @@ def AssembleTestSuites():
     nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_element_mapper.NearestElementBasicTestsSurfaceSwitchedSides]))
     nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_element_mapper.NearestElementBasicTestsVolume]))
     nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_element_mapper.NearestElementBasicTestsVolumeSwitchedSides]))
+
+    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([barycentric.BarycentricBasicTestsLine]))
+    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([barycentric.BarycentricBasicTestsLineSwitchedSides]))
+    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([barycentric.BarycentricBasicTestsSurface]))
+    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([barycentric.BarycentricBasicTestsSurfaceSwitchedSides]))
+    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([barycentric.BarycentricBasicTestsVolume]))
+    nightlyMPISuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([barycentric.BarycentricBasicTestsVolumeSwitchedSides]))
 
     ### Full MPI set ###########################################################
     allMPISuite = suites['mpi_all']

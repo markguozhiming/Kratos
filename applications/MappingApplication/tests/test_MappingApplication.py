@@ -10,6 +10,7 @@ import run_cpp_unit_tests
 # Import the tests or test_classes to create the suits
 import test_nearest_neighbor_mapper
 import test_nearest_element_mapper
+import test_barycentric_mapper
 
 from test_patch_test_mappers import TestPatchTestMappers
 
@@ -50,6 +51,13 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_element_mapper.NearestElementBasicTestsSurfaceSwitchedSides]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_element_mapper.NearestElementBasicTestsVolume]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_element_mapper.NearestElementBasicTestsVolumeSwitchedSides]))
+
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([barycentric.BarycentricBasicTestsLine]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([barycentric.BarycentricBasicTestsLineSwitchedSides]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([barycentric.BarycentricBasicTestsSurface]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([barycentric.BarycentricBasicTestsSurfaceSwitchedSides]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([barycentric.BarycentricBasicTestsVolume]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([barycentric.BarycentricBasicTestsVolumeSwitchedSides]))
 
     # Create a test suit that contains all the tests from every testCase
     # in the list:
