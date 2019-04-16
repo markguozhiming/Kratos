@@ -103,7 +103,7 @@ private:
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MapperInterfaceInfo );
-        rSerializer.save("NodeIds", mNodeIds);
+        rSerializer.load("NodeIds", mNodeIds);
         rSerializer.load("NeighborCoords", mNeighborCoordinates);
     }
 };
