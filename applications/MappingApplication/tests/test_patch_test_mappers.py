@@ -276,6 +276,34 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
         # # Test conservative Mapping
         self._execute_non_constant_value_test(results_conservative, True)
 
+    def test_barycentric_mapper(self):
+        mapper_name = "barycentric"
+
+        map_results_scalar = [0.2, 0.2, 1.2, 2.2, 2.2]
+        map_results_vector     = [[0.0,0.1,-0.3], [0.0,0.1,-0.3], [1.0,1.1,0.7], [2.0,2.1,1.7], [2.0,2.1,1.7]]
+        inverse_map_results_scalar     = [-0.3, 1.7, 3.7, 3.7]
+        inverse_map_results_vector     = [[0.0,-0.1,0.4], [2.0,1.9,2.4], [4.0,3.9,4.4], [4.0,3.9,4.4]]
+
+        map_results_scalar_conservative = [0.2, 0.0, 1.2, 0.0, 5.4]
+        map_results_vector_conservative     = [[0.0,0.1,-0.3], [0.0,0.0,0.0], [1.0,1.1,0.7], [0.0,0.0,0.0], [5.0,5.2,4.4]]
+        inverse_map_results_scalar_conservative = [0.4, 1.7, 6.4, 0.0]
+        inverse_map_results_vector_conservative = [[1.0,0.8,1.8], [2.0,1.9,2.4], [7.0,6.8,7.8], [0.0,0.0,0.0]]
+
+        results = [map_results_scalar, map_results_vector]
+        results.extend([inverse_map_results_scalar, inverse_map_results_vector])
+
+        results_conservative = [map_results_scalar_conservative, map_results_vector_conservative]
+        results_conservative.extend([inverse_map_results_scalar_conservative, inverse_map_results_vector_conservative])
+
+        self._create_mapper(mapper_name)
+
+        self._execute_constant_value_test()
+
+        self._execute_non_constant_value_test(results)
+
+        # Test Mapping with transpose
+        self._execute_non_constant_value_test(results_conservative, True)
+
     def __CheckValuesSum(self, mp1, mp2, var1, var2, value_is_historical=True):
         var_type = KM.KratosGlobals.GetVariableType(var1.Name())
         if var_type != KM.KratosGlobals.GetVariableType(var2.Name()):
