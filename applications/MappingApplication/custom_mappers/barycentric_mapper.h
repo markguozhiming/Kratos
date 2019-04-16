@@ -36,7 +36,7 @@ public:
     /// Default constructor.
     BarycentricInterfaceInfo() {}
 
-    BarycentricInterfaceInfo(std::size_t NumInterpolationNodes) {
+    explicit BarycentricInterfaceInfo(std::size_t NumInterpolationNodes) {
         mNodeIds.resize(NumInterpolationNodes);
         mNeighborCoordinates.resize(3*NumInterpolationNodes);
     }
