@@ -249,6 +249,7 @@ private:
         Parameters default_settings = Parameters( R"({
             "search_radius"            : -1.0,
             "search_iterations"        : 3,
+            "interpolation_type"       : "unspecified",
             "echo_level"               : 0
         })");
 
