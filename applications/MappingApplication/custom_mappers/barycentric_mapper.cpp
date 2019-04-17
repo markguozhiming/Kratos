@@ -20,9 +20,10 @@
 // Project includes
 #include "barycentric_mapper.h"
 #include "mapping_application_variables.h"
-#include "geometries/line_3d_2.h"
+#include "geometries/line_2d_2.h"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
+#include "utilities/geometrical_projection_utilities.h"
 
 namespace Kratos
 {
@@ -80,11 +81,60 @@ void InsertIfCloser(const array_1d<double,3>& rRefCoords,
     }
 }
 
-bool InterpolateInEntity(const std::vector<double>& rCoordinates,
-                         Vector& rShapeFunctionValues) {
+bool BarycentricInterpolateInEntity(const array_1d<double,3>& rRefCoords,
+                                    const std::vector<double>& rCoordinates,
+                                    Vector& rShapeFunctionValues) {
 
-    bool is_inside = false;
+    bool is_inside;
+    const std::size_t num_interpolation_nodes = rCoordinates.size()/3;
 
+    array_1d<double, 3> local_coords;
+
+    if (num_interpolation_nodes == 2) {
+        Point::Pointer p_1(Kratos::make_shared<Point>(CreateArrayFromVector(rCoordinates, 0)));
+        Point::Pointer p_2(Kratos::make_shared<Point>(CreateArrayFromVector(rCoordinates, 3)));
+        Line2D2<Point> line(p_1, p_2);
+
+        const Point point_to_proj(rRefCoords);
+        double dummy = 0.0;
+
+        is_inside = GeometricalProjectionUtilities::ProjectOnGeometry(line, point_to_proj, local_coords, dummy);
+        if (is_inside) {
+            line.ShapeFunctionsValues(rShapeFunctionValues, local_coords);
+        }
+
+    } else if (num_interpolation_nodes == 3) {
+        Point::Pointer p_1(Kratos::make_shared<Point>(CreateArrayFromVector(rCoordinates, 0)));
+        Point::Pointer p_2(Kratos::make_shared<Point>(CreateArrayFromVector(rCoordinates, 3)));
+        Point::Pointer p_3(Kratos::make_shared<Point>(CreateArrayFromVector(rCoordinates, 6)));
+        Triangle3D3<Point> triangle(p_1, p_2, p_3);
+
+        const Point point_to_proj(rRefCoords);
+        double dummy = 0.0;
+
+        is_inside = GeometricalProjectionUtilities::ProjectOnGeometry(triangle, point_to_proj, local_coords, dummy);
+        if (is_inside) {
+            triangle.ShapeFunctionsValues(rShapeFunctionValues, local_coords);
+        }
+
+    } else if (num_interpolation_nodes == 4) {
+        Point::Pointer p_1(Kratos::make_shared<Point>(CreateArrayFromVector(rCoordinates, 0)));
+        Point::Pointer p_2(Kratos::make_shared<Point>(CreateArrayFromVector(rCoordinates, 3)));
+        Point::Pointer p_3(Kratos::make_shared<Point>(CreateArrayFromVector(rCoordinates, 6)));
+        Point::Pointer p_4(Kratos::make_shared<Point>(CreateArrayFromVector(rCoordinates, 9)));
+        Tetrahedra3D4<Point> tetra(p_1, p_2, p_3, p_4);
+
+        const Point point_to_proj(rRefCoords);
+        double dummy = 0.0;
+
+        is_inside = MapperUtilities::ProjectIntoVolume(tetra, point_to_proj, local_coords, dummy);
+        if (is_inside) {
+            tetra.ShapeFunctionsValues(rShapeFunctionValues, local_coords);
+        }
+
+    } else {
+        KRATOS_ERROR << "Wrong number of interpolation nodes, this should not happen!" << std::endl;
+    }
 
     return is_inside;
 }
@@ -157,7 +207,7 @@ void BarycentricLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
 
     if (std::find(final_node_ids.begin(), final_node_ids.end(), -1) == final_node_ids.end()) { // enough nodes found, trying to project/interpolate
         Vector shape_function_values;
-        const bool is_inside = InterpolateInEntity(final_neighbor_coords, shape_function_values);
+        const bool is_inside = BarycentricInterpolateInEntity(Coordinates(), final_neighbor_coords, shape_function_values);
         if (is_inside) {
             rPairingStatus = MapperLocalSystem::PairingStatus::InterfaceInfoFound;
             if (rLocalMappingMatrix.size1() != 1 || rLocalMappingMatrix.size2() != shape_function_values.size()) {
