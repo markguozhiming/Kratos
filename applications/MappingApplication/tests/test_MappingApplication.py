@@ -52,12 +52,12 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_element_mapper.NearestElementBasicTestsVolume]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_nearest_element_mapper.NearestElementBasicTestsVolumeSwitchedSides]))
 
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([barycentric.BarycentricBasicTestsLine]))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([barycentric.BarycentricBasicTestsLineSwitchedSides]))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([barycentric.BarycentricBasicTestsSurface]))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([barycentric.BarycentricBasicTestsSurfaceSwitchedSides]))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([barycentric.BarycentricBasicTestsVolume]))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([barycentric.BarycentricBasicTestsVolumeSwitchedSides]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_barycentric_mapper.BarycentricBasicTestsLine]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_barycentric_mapper.BarycentricBasicTestsLineSwitchedSides]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_barycentric_mapper.BarycentricBasicTestsSurface]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_barycentric_mapper.BarycentricBasicTestsSurfaceSwitchedSides]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_barycentric_mapper.BarycentricBasicTestsVolume]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_barycentric_mapper.BarycentricBasicTestsVolumeSwitchedSides]))
 
     # Create a test suit that contains all the tests from every testCase
     # in the list:
