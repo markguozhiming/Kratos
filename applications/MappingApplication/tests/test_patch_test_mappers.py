@@ -90,6 +90,8 @@ class TestPatchTestMappers(KratosUnittest.TestCase):
         mapper_settings = KM.Parameters("""{
             "mapper_type" : \"""" + mapper_name + """\"
          }""")
+        if mapper_name == "barycentric":
+            mapper_settings.AddEmptyValue("interpolation_type").SetString("line")
 
         self.mapper = KratosMapping.MapperFactory.CreateMapper(self.mp_origin,
                                                                self.mp_destination,

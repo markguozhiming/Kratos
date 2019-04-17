@@ -8,6 +8,7 @@ class BarycentricBasicTestsLine(basic_mapper_tests.BasicMapperTests):
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
             "mapper_type": "barycentric",
+            "interpolation_type" : "line",
             "interface_submodel_part_origin": "line_tri",
             "interface_submodel_part_destination": "line_quad",
             "echo_level" : 0
@@ -19,6 +20,7 @@ class BarycentricBasicTestsLineSwitchedSides(basic_mapper_tests.BasicMapperTests
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
             "mapper_type": "barycentric",
+            "interpolation_type" : "line",
             "interface_submodel_part_origin": "line_quad",
             "interface_submodel_part_destination": "line_tri",
             "echo_level" : 0
@@ -30,6 +32,7 @@ class BarycentricBasicTestsSurface(basic_mapper_tests.BasicMapperTests):
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
             "mapper_type": "barycentric",
+            "interpolation_type" : "surface",
             "interface_submodel_part_origin": "surface_tri",
             "interface_submodel_part_destination": "surface_quad",
             "echo_level" : 0
@@ -41,6 +44,7 @@ class BarycentricBasicTestsSurfaceSwitchedSides(basic_mapper_tests.BasicMapperTe
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
             "mapper_type": "barycentric",
+            "interpolation_type" : "surface",
             "interface_submodel_part_origin": "surface_quad",
             "interface_submodel_part_destination": "surface_tri",
             "echo_level" : 0
@@ -52,6 +56,7 @@ class BarycentricBasicTestsVolume(basic_mapper_tests.BasicMapperTests):
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
             "mapper_type": "barycentric",
+            "interpolation_type" : "volume",
             "echo_level" : 0
         }""")
         super(BarycentricBasicTestsVolume, cls).setUpMapper(mapper_params)
@@ -61,6 +66,7 @@ class BarycentricBasicTestsVolumeSwitchedSides(basic_mapper_tests.BasicMapperTes
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
             "mapper_type": "barycentric",
+            "interpolation_type" : "volume",
             "echo_level" : 0
         }""")
         super(BarycentricBasicTestsVolumeSwitchedSides, cls).setUpMapper(mapper_params, switch_sides=True)
