@@ -35,6 +35,8 @@ typedef std::size_t IndexType;
 
 typedef Node<3> NodeType;
 
+typedef array_1d<double, 3> CoordinatesArrayType;
+
 typedef Kratos::unique_ptr<MapperInterfaceInfo> MapperInterfaceInfoUniquePointerType;
 
 typedef Kratos::shared_ptr<MapperInterfaceInfo> MapperInterfaceInfoPointerType;
@@ -221,6 +223,23 @@ inline double ComputeDistance(const array_1d<double, 3>& rCoords1,
     return std::sqrt( std::pow(rCoords1[0] - rCoords2[0] , 2) +
                       std::pow(rCoords1[1] - rCoords2[1] , 2) +
                       std::pow(rCoords1[2] - rCoords2[2] , 2) );
+}
+
+template<class TGeometryType>
+bool ProjectIntoVolume(TGeometryType& rGeometry,
+                       const Point& rPointToProject,
+                       CoordinatesArrayType& rLocalCoords,
+                       double& rDistance)
+{
+    bool is_inside = rGeometry.IsInside(rPointToProject, rLocalCoords);
+
+    if (is_inside) {
+        // Calculate Distance
+        rDistance = ComputeDistance(rPointToProject, rGeometry.Center());
+        rDistance /= rGeometry.Volume(); // Normalize Distance by Volume
+    }
+
+    return is_inside;
 }
 
 template <typename T>
