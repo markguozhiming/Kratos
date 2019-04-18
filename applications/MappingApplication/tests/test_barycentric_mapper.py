@@ -71,6 +71,17 @@ class BarycentricBasicTestsVolumeSwitchedSides(basic_mapper_tests.BasicMapperTes
         }""")
         super(BarycentricBasicTestsVolumeSwitchedSides, cls).setUpMapper(mapper_params, switch_sides=True)
 
+class BarycentricBladeMapping(blade_mapping_test.BladeMappingTests):
+    @classmethod
+    def setUpClass(cls):
+        mapper_params = KM.Parameters("""{
+            "mapper_type": "barycentric",
+            "interpolation_type" : "surface",
+            "echo_level" : 0
+        }""")
+        super(BarycentricBladeMapping, cls).setUpMapper(mapper_params)
+        cls.print_output = False
+
 if __name__ == '__main__':
     import sys
     if "--using-mpi" in sys.argv:
