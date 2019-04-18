@@ -2,6 +2,7 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 
 import KratosMultiphysics as KM
 import basic_mapper_tests
+import blade_mapping_test
 
 class BarycentricBasicTestsLine(basic_mapper_tests.BasicMapperTests):
     @classmethod
