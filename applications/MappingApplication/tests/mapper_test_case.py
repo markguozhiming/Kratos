@@ -111,10 +111,15 @@ def ReadDistributedModelPart(model_part, mdpa_file_name):
     model_part_import_util.ImportModelPart()
     model_part_import_util.CreateCommunicators()
 
-def OutputReferenceSolution(model_part, variable, file_name):
-    full_model_part_name = model_part.Name
+def GetFullModelPartName(model_part):
+    full_name = model_part.Name
     if model_part.IsSubModelPart():
-        full_model_part_name = model_part.GetParentModelPart().Name  + "." + full_model_part_name
+        full_name = GetFullModelPartName(model_part.GetParentModelPart()) + "." + full_name
+
+    return full_name
+
+def OutputReferenceSolution(model_part, variable, file_name):
+    full_model_part_name = GetFullModelPartName(model_part)
 
     if data_comm.IsDistributed():
         raise Exception("Writing of reference results in not possible in MPI!")
@@ -137,9 +142,7 @@ def CheckHistoricalNonUniformValues(model_part, variable, file_name, output_refe
     if output_reference_solution:
         OutputReferenceSolution(model_part, variable, file_name)
     else:
-        full_model_part_name = model_part.Name
-        if model_part.IsSubModelPart():
-            full_model_part_name = model_part.GetParentModelPart().Name  + "." + full_model_part_name
+        full_model_part_name = GetFullModelPartName(model_part)
 
         check_parameters = KM.Parameters("""{
             "check_variables"           : [\"""" + variable.Name() + """\"],
@@ -162,7 +165,8 @@ def VtkOutputNodesHistorical(model_part, variable, prefix=""):
         "file_format"                        : "binary",
         "output_control_type"                : "step",
         "output_sub_model_parts"             : false,
-        "save_output_files_in_folder"        : false,
+        "folder_name"                        : \"""" + "VTK_Output_" + prefix + """\",
+        "save_output_files_in_folder"        : true,
             "custom_name_prefix"             : \"""" + prefix + "_" + """\",
         "nodal_solution_step_data_variables" : [\"""" + variable.Name() + """\"]
     }""")
