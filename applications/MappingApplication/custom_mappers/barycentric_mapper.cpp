@@ -90,6 +90,8 @@ bool BarycentricInterpolateInEntity(const array_1d<double,3>& rRefCoords,
 
     array_1d<double, 3> local_coords;
 
+    // TODO return false if points are coinciding and issue a warning, this should not happen!
+
     if (num_interpolation_nodes == 2) {
         Point::Pointer p_1(Kratos::make_shared<Point>(CreateArrayFromVector(rCoordinates, 0)));
         Point::Pointer p_2(Kratos::make_shared<Point>(CreateArrayFromVector(rCoordinates, 3)));
@@ -111,6 +113,13 @@ bool BarycentricInterpolateInEntity(const array_1d<double,3>& rRefCoords,
 
         const Point point_to_proj(rRefCoords);
         double dummy = 0.0;
+
+        // KRATOS_WATCH(rCoordinates)
+        // KRATOS_WATCH(*p_1)
+        // KRATOS_WATCH(*p_2)
+        // KRATOS_WATCH(*p_3)
+
+        // KRATOS_WATCH(triangle)
 
         is_inside = GeometricalProjectionUtilities::ProjectOnGeometry(triangle, point_to_proj, local_coords, dummy);
         if (is_inside) {
@@ -136,6 +145,8 @@ bool BarycentricInterpolateInEntity(const array_1d<double,3>& rRefCoords,
         KRATOS_ERROR << "Wrong number of interpolation nodes, this should not happen!" << std::endl;
     }
 
+    KRATOS_WATCH(is_inside)
+
     return is_inside;
 }
 
@@ -155,10 +166,10 @@ void BarycentricInterfaceInfo::ProcessSearchResult(const InterfaceObject& rInter
         mNeighborCoordinates);
 
 
-    KRATOS_WATCH(Coordinates())
-    KRATOS_WATCH(mNodeIds);
-    KRATOS_WATCH(mNeighborCoordinates);
-    std::cout << std::endl << std::endl;
+    // KRATOS_WATCH(Coordinates())
+    // KRATOS_WATCH(mNodeIds);
+    // KRATOS_WATCH(mNeighborCoordinates);
+    // std::cout << std::endl << std::endl;
 }
 
 void BarycentricLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
@@ -242,8 +253,8 @@ void BarycentricLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
 
 
 
-    KRATOS_WATCH(final_node_ids)
-    KRATOS_WATCH(final_neighbor_coords)
+    // KRATOS_WATCH(final_node_ids)
+    // KRATOS_WATCH(final_neighbor_coords)
 
 
         // if enough_nodes_found:
