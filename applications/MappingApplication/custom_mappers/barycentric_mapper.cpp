@@ -145,7 +145,7 @@ bool BarycentricInterpolateInEntity(const array_1d<double,3>& rRefCoords,
         KRATOS_ERROR << "Wrong number of interpolation nodes, this should not happen!" << std::endl;
     }
 
-    KRATOS_WATCH(is_inside)
+    // KRATOS_WATCH(is_inside)
 
     return is_inside;
 }
@@ -343,8 +343,14 @@ std::string BarycentricLocalSystem::PairingInfo(const int EchoLevel, const int C
 
     std::stringstream buffer;
     buffer << "BarycentricLocalSystem based on " << mpNode->Info();
-    if (EchoLevel > 1) // TODO leave here?
+    if (EchoLevel > 1) {// TODO leave here?
         buffer << " at Coodinates " << Coordinates()[0] << " | " << Coordinates()[1] << " | " << Coordinates()[2];
+        if (mPairingStatus == MapperLocalSystem::PairingStatus::Approximation) {
+            mpNode->SetValue(PAIRING_STATUS, 0);
+        } else {
+            mpNode->SetValue(PAIRING_STATUS, -1);
+        }
+    }
     return buffer.str();
 }
 
