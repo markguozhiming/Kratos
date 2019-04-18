@@ -57,7 +57,7 @@ class BarycentricBasicTestsVolume(basic_mapper_tests.BasicMapperTests):
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
             "mapper_type": "barycentric",
-            "interpolation_type" : "volume",
+            "interpolation_type" : "tetrahedra",
             "echo_level" : 0
         }""")
         super(BarycentricBasicTestsVolume, cls).setUpMapper(mapper_params)
@@ -67,7 +67,7 @@ class BarycentricBasicTestsVolumeSwitchedSides(basic_mapper_tests.BasicMapperTes
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
             "mapper_type": "barycentric",
-            "interpolation_type" : "volume",
+            "interpolation_type" : "tetrahedra",
             "echo_level" : 0
         }""")
         super(BarycentricBasicTestsVolumeSwitchedSides, cls).setUpMapper(mapper_params, switch_sides=True)
