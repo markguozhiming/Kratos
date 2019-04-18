@@ -33,7 +33,7 @@ class BarycentricBasicTestsSurface(basic_mapper_tests.BasicMapperTests):
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
             "mapper_type": "barycentric",
-            "interpolation_type" : "surface",
+            "interpolation_type" : "triangle",
             "interface_submodel_part_origin": "surface_tri",
             "interface_submodel_part_destination": "surface_quad",
             "echo_level" : 0
@@ -45,7 +45,7 @@ class BarycentricBasicTestsSurfaceSwitchedSides(basic_mapper_tests.BasicMapperTe
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
             "mapper_type": "barycentric",
-            "interpolation_type" : "surface",
+            "interpolation_type" : "triangle",
             "interface_submodel_part_origin": "surface_quad",
             "interface_submodel_part_destination": "surface_tri",
             "echo_level" : 0
@@ -77,7 +77,7 @@ class BarycentricBladeMapping(blade_mapping_test.BladeMappingTests):
     def setUpClass(cls):
         mapper_params = KM.Parameters("""{
             "mapper_type": "barycentric",
-            "interpolation_type" : "surface",
+            "interpolation_type" : "triangle",
             "echo_level" : 0
         }""")
         super(BarycentricBladeMapping, cls).setUpMapper(mapper_params)
