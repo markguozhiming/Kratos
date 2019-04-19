@@ -1082,7 +1082,7 @@ Begin Conditions SurfaceCondition3D3N
 690 0 182 218 185
 End Conditions // SurfaceCondition3D3N
 
-Begin SubModelPart pressure_side
+Begin SubModelPart pressure_side_tri
 Begin SubModelPartNodes
 1
 2
@@ -1470,7 +1470,7 @@ Begin SubModelPartConditions
 End SubModelPartConditions
 End SubModelPart // pressure_side
 
-Begin SubModelPart suction_side
+Begin SubModelPart suction_side_tri
 Begin SubModelPartNodes
 1
 2
