@@ -83,14 +83,11 @@ void BuildMatrix(Kratos::unique_ptr<typename SparseSpaceType::MatrixType>& rpMdo
     EquationIdVectorType destination_ids;
     int ierr;
 
-    for (auto& rp_local_sys : rMapperLocalSystems)
-    {
+    for (auto& rp_local_sys : rMapperLocalSystems) {
         rp_local_sys->CalculateLocalSystem(local_mapping_matrix, origin_ids, destination_ids);
 
-        KRATOS_DEBUG_ERROR_IF(local_mapping_matrix.size1() != destination_ids.size())
-            << "DestinationID vector size mismatch" << std::endl;
-        KRATOS_DEBUG_ERROR_IF(local_mapping_matrix.size2() != origin_ids.size())
-            << "OriginID vector size mismatch" << std::endl;
+        KRATOS_DEBUG_ERROR_IF(local_mapping_matrix.size1() != destination_ids.size()) << "MPI-MappingMatrixAssembly: DestinationID vector size mismatch: LocalMappingMatrix-Size1: " << local_mapping_matrix.size1() << " | DestinationIDs-size: " << destination_ids.size() << std::endl;
+        KRATOS_DEBUG_ERROR_IF(local_mapping_matrix.size2() != origin_ids.size())<< "MPI-MappingMatrixAssembly: OriginID vector size mismatch: LocalMappingMatrix-Size2: " << local_mapping_matrix.size2() << " | OriginIDs-size: " << origin_ids.size() << std::endl;
 
         if (local_mapping_matrix.size1() > 0) {
             ierr = rpMdo->SumIntoGlobalValues(
@@ -100,8 +97,7 @@ void BuildMatrix(Kratos::unique_ptr<typename SparseSpaceType::MatrixType>& rpMdo
                 Epetra_FECrsMatrix::ROW_MAJOR ); // same for Ublas ad AMatrix
 
             // TODO maybe change this to a debug error only
-            KRATOS_ERROR_IF( ierr != 0 ) << "Epetra failure in Epetra_FECrsMatrix.SumIntoGlobalValues. "
-                << "Error code: " << ierr << std::endl;
+            KRATOS_ERROR_IF( ierr != 0 ) << "Epetra failure in Epetra_FECrsMatrix.SumIntoGlobalValues. Error code: " << ierr << std::endl;
         }
 
         // The local-systems are always cleared since they would be recomputed
@@ -109,7 +105,6 @@ void BuildMatrix(Kratos::unique_ptr<typename SparseSpaceType::MatrixType>& rpMdo
         rp_local_sys->Clear();
     }
 }
-
 }
 
 template<>
