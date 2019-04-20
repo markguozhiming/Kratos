@@ -228,6 +228,15 @@ private:
         return Kratos::make_unique<NearestNeighborInterfaceInfo>();
     }
 
+    Parameters GetMapperDefaultSettings() const override
+    {
+        return Parameters( R"({
+            "search_radius"            : -1.0,
+            "search_iterations"        : 3,
+            "echo_level"               : 0
+        })");
+    }
+
     ///@}
 
 }; // Class NearestNeighborMapper

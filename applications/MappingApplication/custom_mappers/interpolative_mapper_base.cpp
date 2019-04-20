@@ -178,7 +178,9 @@ template<class TSparseSpace, class TDenseSpace>
 void InterpolativeMapperBase<TSparseSpace, TDenseSpace>::ValidateInput(Parameters MapperSettings)
 {
     MapperUtilities::CheckInterfaceModelParts(0);
-    ValidateParameters(MapperSettings);
+
+    Parameters mapper_default_settings(GetMapperDefaultSettings());
+    mMapperSettings.ValidateAndAssignDefaults(mapper_default_settings);
 
     if (mMapperSettings["search_radius"].GetDouble() < 0.0) {
         const double search_radius = MapperUtilities::ComputeSearchRadius(

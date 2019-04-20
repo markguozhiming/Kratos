@@ -82,7 +82,6 @@ public:
         mpInterfaceVectorContainerOrigin = Kratos::make_unique<InterfaceVectorContainerType>(rModelPartOrigin);
         mpInterfaceVectorContainerDestination = Kratos::make_unique<InterfaceVectorContainerType>(rModelPartDestination);
 
-        ValidateInput(mMapperSettings);
         InitializeInterfaceCommunicator();
     }
 
@@ -218,6 +217,7 @@ protected:
     */
     void Initialize()
     {
+        ValidateInput(mMapperSettings);
         InitializeInterface();
     }
 
@@ -245,17 +245,6 @@ private:
     ///@{
 
     void ValidateInput(Parameters AllMapperSettings);
-
-    void ValidateParameters(Parameters AllMapperSettings)
-    {
-        Parameters default_settings = Parameters( R"({
-            "search_radius"            : -1.0,
-            "search_iterations"        : 3,
-            "echo_level"               : 0
-        })");
-
-        AllMapperSettings.ValidateAndAssignDefaults(default_settings);
-    }
 
     void InitializeInterfaceCommunicator();
 
@@ -293,6 +282,8 @@ private:
         std::vector<Kratos::unique_ptr<MapperLocalSystem>>& rLocalSystems) = 0;
 
     virtual MapperInterfaceInfoUniquePointerType GetMapperInterfaceInfo() const = 0;
+
+    virtual Parameters GetMapperDefaultSettings() const = 0;
 
     ///@}
     ///@name Private  Access
