@@ -85,11 +85,18 @@ public:
         rValue = mClosestProjectionDistance;
     }
 
+    void GetValue(int& rValue,
+                  const InfoType ValueType) const override
+    {
+        rValue = mPairingIndex;
+    }
+
 private:
 
     std::vector<int> mNodeIds;
     std::vector<double> mShapeFunctionValues;
     double mClosestProjectionDistance = std::numeric_limits<double>::max();
+    int mPairingIndex;
 
     friend class Serializer;
 
@@ -99,6 +106,7 @@ private:
         rSerializer.save("NodeIds", mNodeIds);
         rSerializer.save("SFValues", mShapeFunctionValues);
         rSerializer.save("ClosestProjectionDistance", mClosestProjectionDistance);
+        rSerializer.save("PairingIndex", mPairingIndex);
     }
 
     void load(Serializer& rSerializer) override
@@ -107,6 +115,7 @@ private:
         rSerializer.load("NodeIds", mNodeIds);
         rSerializer.load("SFValues", mShapeFunctionValues);
         rSerializer.load("ClosestProjectionDistance", mClosestProjectionDistance);
+        rSerializer.load("PairingIndex", mPairingIndex);
     }
 
 };
