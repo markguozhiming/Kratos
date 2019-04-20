@@ -163,7 +163,7 @@ public:
     ///@name Input and output
     ///@{
 
-    virtual std::string PairingInfo(const int EchoLevel, const int CommRank) const = 0;
+    virtual std::string PairingInfo(const int EchoLevel) const = 0;
 
     /// Turn back information as a string.
     virtual std::string Info() const {return "MapperLocalSystem";}

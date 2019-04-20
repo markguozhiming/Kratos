@@ -116,7 +116,7 @@ public:
     }
 
     /// Turn back information as a string.
-    std::string PairingInfo(const int EchoLevel, const int CommRank) const override;
+    std::string PairingInfo(const int EchoLevel) const override;
 
 private:
     NodePointerType mpNode;
