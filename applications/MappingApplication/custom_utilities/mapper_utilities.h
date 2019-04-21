@@ -24,11 +24,24 @@
 #include "includes/model_part.h"
 #include "custom_utilities/mapper_flags.h"
 #include "custom_utilities/mapper_local_system.h"
+#include "utilities/geometrical_projection_utilities.h"
 
 namespace Kratos
 {
 namespace MapperUtilities
 {
+
+enum class PairingIndex
+{
+    Volume_Inside   = -1,
+    Volume_Outside  = -2,
+    Surface_Inside  = -3,
+    Surface_Outside = -4,
+    Line_Inside     = -5,
+    Line_Outside    = -6,
+    Closest_Point   = -7,
+    Unspecified     = -8
+};
 
 typedef std::size_t SizeType;
 typedef std::size_t IndexType;
@@ -223,6 +236,101 @@ inline double ComputeDistance(const T1& rCoords1,
                       std::pow(rCoords1[1] - rCoords2[1] , 2) +
                       std::pow(rCoords1[2] - rCoords2[2] , 2) );
 }
+
+template<class TGeometryType>
+PairingIndex ProjectOnLine(TGeometryType& rGeometry,
+                           const Point& rPointToProject,
+                           const double LocalCoordTol,
+                           Vector& rShapeFunctionValues,
+                           std::vector<int>& rEquationIds,
+                           double& rDistance)
+{
+    Point projected_point;
+
+    rDistance = GeometricalProjectionUtilities::FastProjectOnLine(rGeometry, rPointToProject, projected_point);
+
+    array_1d<double, 3>& local_coords;
+    PairingIndex pairing_index;
+
+    const bool is_inside = rGeometry.IsInside(projected_point, local_coords, 1e-14);
+
+    if (is_inside) {
+        pairing_index = PairingIndex::Line_Inside;
+        rGeometry.ShapeFunctionsValues(rShapeFunctionValues, local_coords);
+    } else if (!is_inside && std::abs(local_coords[0] < 1.0+LocalCoordTol)) {
+        pairing_index = PairingIndex::Line_Outside;
+        rGeometry.ShapeFunctionsValues(rShapeFunctionValues, local_coords);
+    } else {
+        // projection is ouside the line, searching the closest point
+        pairing_index = PairingIndex::Closest_Point;
+        const double dist_1 = ComputeDistance(rPointToProject, rGeometry[0]);
+        const double dist_2 = ComputeDistance(rPointToProject, rGeometry[1]);
+
+        if (dist_1 > dist_2) {
+            rEquationIds[0] = rEquationIds[1];
+            rDistance = dist_2;
+        } else {
+            rDistance = dist_1;
+        }
+
+        rEquationIds.resize(1);
+        rShapeFunctionValues.resize(1);
+        rShapeFunctionValues[0] = 1.0;
+    }
+
+    return pairing_index;
+}
+
+template<class TGeometryType>
+PairingIndex ProjectOnSurface(TGeometryType& rGeometry,
+                     const Point& rPointToProject,
+                     const double LocalCoordTol,
+                     Vector& rShapeFunctionValues,
+                     std::vector<int>& rEquationIds,
+                     double& rDistance)
+{
+    Point projected_point;
+
+    rDistance = GeometricalProjectionUtilities::FastProjectOnGeometry(rGeometry, rPointToProject, projected_point);
+
+    array_1d<double, 3>& local_coords;
+    PairingIndex pairing_index;
+
+    const bool is_inside = rGeometry.IsInside(projected_point, local_coords, 1e-14);
+
+    if (is_inside) {
+        pairing_index = PairingIndex::Surface_Inside;
+        rGeometry.ShapeFunctionsValues(rShapeFunctionValues, local_coords);
+    } else if (!is_inside && std::abs(local_coords[0]) < 1.0+LocalCoordTol && std::abs(local_coords[1]) < 1.0+LocalCoordTol) {
+        pairing_index = PairingIndex::Surface_Outside;
+        rGeometry.ShapeFunctionsValues(rShapeFunctionValues, local_coords);
+    } else { // inter-/extrapolation failed, trying to project on "subgeometries"
+        pairing_index = PairingIndex::Unspecified;
+        std::vector<int> final_eq_ids;
+
+        auto edges = rGeometry.Edges();
+
+        for (std::size_t i=0; i<edges.size(); ++i) {
+            Vector edge_sf_values;
+            std::vector<int> edge_eq_ids {rEquationIds[i], rEquationIds[(i+1)%edges.size()]};
+            double edge_distance;
+
+            const PairingIndex edge_index = ProjectOnLine(edges[i], rPointToProject, LocalCoordTol, edge_sf_values, edge_eq_ids, edge_distance);
+
+            // check if the current edge gives a better result
+            if (edge_index > pairing_index || (edge_index == pairing_index && edge_distance > rDistance)) {
+                pairing_index = edge_index;
+                rShapeFunctionValues = edge_sf_values;
+                rDistance = edge_distance;
+                final_eq_ids = edge_eq_ids;
+            }
+        }
+        rEquationIds = final_eq_ids;
+    }
+
+    return pairing_index;
+}
+
 
 template<class TGeometryType>
 bool ProjectIntoVolume(TGeometryType& rGeometry,
