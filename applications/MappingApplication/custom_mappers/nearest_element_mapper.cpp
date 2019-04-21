@@ -42,19 +42,26 @@ void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject& rIn
     const Point point_to_proj(this->Coordinates());
 
     // select projection depending on type of geometry
-    if ((geom_family == GeometryData::Kratos_Linear        && num_nodes == 2) || // linear line
-        (geom_family == GeometryData::Kratos_Triangle      && num_nodes == 3) || // linear triangle
-        (geom_family == GeometryData::Kratos_Quadrilateral && num_nodes == 4)) { // linear quad
+    if (geom_family == GeometryData::Kratos_Linear && num_nodes == 2) { // linear line
+        Point projected_point;
+        // proj_dist = GeometricalProjectionUtilities::FastProjectOnGeometry(*p_geom, point_to_proj, projected_point);
+        // is_inside = p_geom->IsInside(projected_point, local_coords, 1e-14);
+        // if (is_inside) {
+        //     mPairingIndex = 1;
+        // } else if (!is_inside && std::abs(local_coords < 1.0+local_coord_tolerance)) {
+        //     mPairingIndex = -1;
+        // } else
+
+    } else if ((geom_family == GeometryData::Kratos_Triangle      && num_nodes == 3) || // linear triangle
+               (geom_family == GeometryData::Kratos_Quadrilateral && num_nodes == 4)) { // linear quad
         Point projected_point;
         proj_dist = GeometricalProjectionUtilities::FastProjectOnGeometry(*p_geom, point_to_proj, projected_point);
         is_inside = p_geom->IsInside(projected_point, local_coords, 1e-14);
-    }
-    else if (geom_family == GeometryData::Kratos_Tetrahedra ||
-             geom_family == GeometryData::Kratos_Prism ||
-             geom_family == GeometryData::Kratos_Hexahedra) { // Volume projection
+    } else if (geom_family == GeometryData::Kratos_Tetrahedra ||
+               geom_family == GeometryData::Kratos_Prism ||
+               geom_family == GeometryData::Kratos_Hexahedra) { // Volume projection
         is_inside = MapperUtilities::ProjectIntoVolume(*p_geom, point_to_proj, local_coords, proj_dist);
-    }
-    else {
+    } else {
         is_inside = false;
         KRATOS_WARNING_ONCE("NearestElementMapper") << "Unsupported type of geometry,"
             << "trying to use an approximation (Nearest Neighbor)" << std::endl;
@@ -89,21 +96,24 @@ void NearestElementInterfaceInfo::ProcessSearchResultForApproximation(const Inte
                                                                       const double NeighborDistance)
 {
     const auto p_geom = rInterfaceObject.pGetBaseGeometry();
-
-    // looping the points of the geometry and finding the nearest neighbor
+    const Point point_to_proj(this->Coordinates());
+    Vector shape_function_values;
+    std::vector<int> eq_ids;
     for (const auto& r_point : p_geom->Points()) {
-        const double dist = MapperUtilities::ComputeDistance(this->Coordinates(), r_point.Coordinates());
+        KRATOS_DEBUG_ERROR_IF_NOT(r_point.Has(INTERFACE_EQUATION_ID));
+        eq_ids.push_back(r_point.GetValue(INTERFACE_EQUATION_ID));
+    }
 
-        // in case of an approximation this is the actual distance,
-        // not the projected one bcs no valid projection could be found!
-        if (dist < mClosestProjectionDistance) {
-            mClosestProjectionDistance = dist;
-            if (mNodeIds.size() != 1) mNodeIds.resize(1);
-            if (mShapeFunctionValues.size() != 1) mShapeFunctionValues.resize(1);
-            KRATOS_DEBUG_ERROR_IF_NOT(r_point.Has(INTERFACE_EQUATION_ID));
-            mNodeIds[0] = r_point.GetValue(INTERFACE_EQUATION_ID);
-            mShapeFunctionValues[0] = 1.0; // Approximation is nearest node
-        }
+    mPairingIndex = MapperUtilities::ProjectOnSurface(*p_geom, point_to_proj, 0.5, shape_function_values, eq_ids, mClosestProjectionDistance);
+
+    const std::size_t num_values = shape_function_values.size();
+    KRATOS_DEBUG_ERROR_IF_NOT(num_values == eq_ids.size());
+
+    mNodeIds = eq_ids;
+
+    if (mShapeFunctionValues.size() != num_values) mShapeFunctionValues.resize(num_values);
+    for (std::size_t i=0; i<num_values; ++i) {
+        mShapeFunctionValues[i] = shape_function_values[i];
     }
 
     SetIsApproximation();
@@ -131,11 +141,17 @@ void NearestElementLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
         }
 
         if (found_idx == -1) { // no valid projection exists => using an approximation
+            int int_pairing_index;
+            MapperUtilities::PairingIndex pairing_index;
             for (IndexType i=0; i<mInterfaceInfos.size(); ++i) {
                 // now the approximations are being checked
                 if (mInterfaceInfos[i]->GetIsApproximation()) {
+                    mInterfaceInfos[i]->GetValue(int_pairing_index, MapperInterfaceInfo::InfoType::Dummy);
+                    pairing_index = (MapperUtilities::PairingIndex)int_pairing_index;
                     mInterfaceInfos[i]->GetValue(distance, MapperInterfaceInfo::InfoType::Dummy);
-                    if (distance < min_distance) {
+
+                    if (pairing_index > mPairingIndex || (pairing_index == mPairingIndex && distance < min_distance)) {
+                        mPairingIndex = pairing_index;
                         min_distance = distance;
                         found_idx = static_cast<int>(i); // TODO explicit conversion needed?
                         rPairingStatus = MapperLocalSystem::PairingStatus::Approximation;
@@ -177,9 +193,7 @@ std::string NearestElementLocalSystem::PairingInfo(const int EchoLevel) const
     if (EchoLevel > 1) {// TODO leave here?
         buffer << " at Coodinates " << Coordinates()[0] << " | " << Coordinates()[1] << " | " << Coordinates()[2];
         if (mPairingStatus == MapperLocalSystem::PairingStatus::Approximation) {
-            mpNode->SetValue(PAIRING_STATUS, 0);
-        } else {
-            mpNode->SetValue(PAIRING_STATUS, -1);
+            mpNode->SetValue(PAIRING_STATUS, (int)mPairingIndex);
         }
     }
     return buffer.str();

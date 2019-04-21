@@ -88,7 +88,7 @@ public:
     void GetValue(int& rValue,
                   const InfoType ValueType) const override
     {
-        rValue = mPairingIndex;
+        rValue = (int)mPairingIndex;
     }
 
 private:
@@ -96,7 +96,7 @@ private:
     std::vector<int> mNodeIds;
     std::vector<double> mShapeFunctionValues;
     double mClosestProjectionDistance = std::numeric_limits<double>::max();
-    int mPairingIndex;
+    MapperUtilities::PairingIndex mPairingIndex;
 
     friend class Serializer;
 
@@ -106,7 +106,7 @@ private:
         rSerializer.save("NodeIds", mNodeIds);
         rSerializer.save("SFValues", mShapeFunctionValues);
         rSerializer.save("ClosestProjectionDistance", mClosestProjectionDistance);
-        rSerializer.save("PairingIndex", mPairingIndex);
+        rSerializer.save("PairingIndex", (int)mPairingIndex);
     }
 
     void load(Serializer& rSerializer) override
@@ -115,7 +115,9 @@ private:
         rSerializer.load("NodeIds", mNodeIds);
         rSerializer.load("SFValues", mShapeFunctionValues);
         rSerializer.load("ClosestProjectionDistance", mClosestProjectionDistance);
-        rSerializer.load("PairingIndex", mPairingIndex);
+        int temp;
+        rSerializer.load("PairingIndex", temp);
+        mPairingIndex = (MapperUtilities::PairingIndex)temp;
     }
 
 };
@@ -141,6 +143,7 @@ public:
 
 private:
     NodePointerType mpNode;
+    mutable MapperUtilities::PairingIndex mPairingIndex = MapperUtilities::PairingIndex::Closest_Point;
 
 };
 
@@ -253,6 +256,7 @@ private:
         return Parameters( R"({
             "search_radius"            : -1.0,
             "search_iterations"        : 3,
+            "local_coord_tolerance"    : 0.5,
             "echo_level"               : 0
         })");
     }

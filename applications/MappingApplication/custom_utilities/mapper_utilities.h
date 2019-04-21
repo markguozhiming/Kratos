@@ -249,7 +249,7 @@ PairingIndex ProjectOnLine(TGeometryType& rGeometry,
 
     rDistance = GeometricalProjectionUtilities::FastProjectOnLine(rGeometry, rPointToProject, projected_point);
 
-    array_1d<double, 3>& local_coords;
+    array_1d<double, 3> local_coords;
     PairingIndex pairing_index;
 
     const bool is_inside = rGeometry.IsInside(projected_point, local_coords, 1e-14);
@@ -281,6 +281,7 @@ PairingIndex ProjectOnLine(TGeometryType& rGeometry,
     return pairing_index;
 }
 
+// TODO probably the eq-id handling can be improved after the interface-communication is changed
 template<class TGeometryType>
 PairingIndex ProjectOnSurface(TGeometryType& rGeometry,
                      const Point& rPointToProject,
@@ -293,7 +294,7 @@ PairingIndex ProjectOnSurface(TGeometryType& rGeometry,
 
     rDistance = GeometricalProjectionUtilities::FastProjectOnGeometry(rGeometry, rPointToProject, projected_point);
 
-    array_1d<double, 3>& local_coords;
+    array_1d<double, 3> local_coords;
     PairingIndex pairing_index;
 
     const bool is_inside = rGeometry.IsInside(projected_point, local_coords, 1e-14);
