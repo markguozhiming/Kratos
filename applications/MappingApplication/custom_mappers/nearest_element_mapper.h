@@ -96,7 +96,7 @@ private:
     std::vector<int> mNodeIds;
     std::vector<double> mShapeFunctionValues;
     double mClosestProjectionDistance = std::numeric_limits<double>::max();
-    MapperUtilities::PairingIndex mPairingIndex;
+    MapperUtilities::PairingIndex mPairingIndex = MapperUtilities::PairingIndex::Closest_Point;
 
     friend class Serializer;
 

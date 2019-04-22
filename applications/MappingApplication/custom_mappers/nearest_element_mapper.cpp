@@ -98,22 +98,27 @@ void NearestElementInterfaceInfo::ProcessSearchResultForApproximation(const Inte
     const auto p_geom = rInterfaceObject.pGetBaseGeometry();
     const Point point_to_proj(this->Coordinates());
     Vector shape_function_values;
+    double proj_dist;
     std::vector<int> eq_ids;
     for (const auto& r_point : p_geom->Points()) {
         KRATOS_DEBUG_ERROR_IF_NOT(r_point.Has(INTERFACE_EQUATION_ID));
         eq_ids.push_back(r_point.GetValue(INTERFACE_EQUATION_ID));
     }
 
-    mPairingIndex = MapperUtilities::ProjectOnSurface(*p_geom, point_to_proj, 0.5, shape_function_values, eq_ids, mClosestProjectionDistance);
+    const MapperUtilities::PairingIndex pairing_index = MapperUtilities::ProjectOnSurface(*p_geom, point_to_proj, 0.5, shape_function_values, eq_ids, proj_dist);
 
     const std::size_t num_values = shape_function_values.size();
     KRATOS_DEBUG_ERROR_IF_NOT(num_values == eq_ids.size());
 
-    mNodeIds = eq_ids;
+    if (pairing_index > mPairingIndex || (pairing_index == mPairingIndex && proj_dist < mClosestProjectionDistance)) {
+        mPairingIndex = pairing_index;
+        mClosestProjectionDistance = proj_dist;
+        mNodeIds = eq_ids;
 
-    if (mShapeFunctionValues.size() != num_values) mShapeFunctionValues.resize(num_values);
-    for (std::size_t i=0; i<num_values; ++i) {
-        mShapeFunctionValues[i] = shape_function_values[i];
+        if (mShapeFunctionValues.size() != num_values) mShapeFunctionValues.resize(num_values);
+        for (std::size_t i=0; i<num_values; ++i) {
+            mShapeFunctionValues[i] = shape_function_values[i];
+        }
     }
 
     SetIsApproximation();
