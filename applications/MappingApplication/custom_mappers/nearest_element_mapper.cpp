@@ -44,14 +44,8 @@ void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject& rIn
     // select projection depending on type of geometry
     if (geom_family == GeometryData::Kratos_Linear && num_nodes == 2) { // linear line
         Point projected_point;
-        // proj_dist = GeometricalProjectionUtilities::FastProjectOnGeometry(*p_geom, point_to_proj, projected_point);
-        // is_inside = p_geom->IsInside(projected_point, local_coords, 1e-14);
-        // if (is_inside) {
-        //     mPairingIndex = 1;
-        // } else if (!is_inside && std::abs(local_coords < 1.0+local_coord_tolerance)) {
-        //     mPairingIndex = -1;
-        // } else
-
+        proj_dist = GeometricalProjectionUtilities::FastProjectOnLine(*p_geom, point_to_proj, projected_point);
+        is_inside = p_geom->IsInside(projected_point, local_coords, 1e-14);
     } else if ((geom_family == GeometryData::Kratos_Triangle      && num_nodes == 3) || // linear triangle
                (geom_family == GeometryData::Kratos_Quadrilateral && num_nodes == 4)) { // linear quad
         Point projected_point;
@@ -105,10 +99,25 @@ void NearestElementInterfaceInfo::ProcessSearchResultForApproximation(const Inte
         eq_ids.push_back(r_point.GetValue(INTERFACE_EQUATION_ID));
     }
 
-    const MapperUtilities::PairingIndex pairing_index = MapperUtilities::ProjectOnSurface(*p_geom, point_to_proj, 0.5, shape_function_values, eq_ids, proj_dist);
+    const SizeType num_nodes = p_geom->PointsNumber();
+    const auto geom_family = p_geom->GetGeometryFamily();
+    MapperUtilities::PairingIndex pairing_index;
+
+    if (geom_family == GeometryData::Kratos_Linear && num_nodes == 2) { // linear line
+        pairing_index = MapperUtilities::ProjectOnLine(*p_geom, point_to_proj, 0.5, shape_function_values, eq_ids, proj_dist);
+    } else if ((geom_family == GeometryData::Kratos_Triangle      && num_nodes == 3) || // linear triangle
+               (geom_family == GeometryData::Kratos_Quadrilateral && num_nodes == 4)) { // linear quad
+        pairing_index = MapperUtilities::ProjectOnSurface(*p_geom, point_to_proj, 0.5, shape_function_values, eq_ids, proj_dist);
+    } else if (geom_family == GeometryData::Kratos_Tetrahedra ||
+               geom_family == GeometryData::Kratos_Prism ||
+               geom_family == GeometryData::Kratos_Hexahedra) { // Volume projection
+        // is_inside = MapperUtilities::ProjectIntoVolume(*p_geom, point_to_proj, local_coords, proj_dist);
+    } else {
+        KRATOS_ERROR << "TODO Philipp implement a nearest neighbor here!" << std::endl;
+    }
 
     const std::size_t num_values = shape_function_values.size();
-    KRATOS_DEBUG_ERROR_IF_NOT(num_values == eq_ids.size());
+    KRATOS_DEBUG_ERROR_IF_NOT(num_values == eq_ids.size()) << "Number of equation-ids is not the same as the number of ShapeFunction values!" << std::endl;
 
     if (pairing_index > mPairingIndex || (pairing_index == mPairingIndex && proj_dist < mClosestProjectionDistance)) {
         mPairingIndex = pairing_index;
