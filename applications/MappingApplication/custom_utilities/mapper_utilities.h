@@ -243,7 +243,8 @@ PairingIndex ProjectOnLine(TGeometryType& rGeometry,
                            const double LocalCoordTol,
                            Vector& rShapeFunctionValues,
                            std::vector<int>& rEquationIds,
-                           double& rDistance)
+                           double& rDistance,
+                           const ComputeApproximation=true)
 {
     Point projected_point;
 
@@ -257,6 +258,8 @@ PairingIndex ProjectOnLine(TGeometryType& rGeometry,
     if (is_inside) {
         pairing_index = PairingIndex::Line_Inside;
         rGeometry.ShapeFunctionsValues(rShapeFunctionValues, local_coords);
+    } else if (!ComputeApproximation) {
+        return PairingIndex::Unspecified;
     } else if (!is_inside && std::abs(local_coords[0] < 1.0+LocalCoordTol)) {
         pairing_index = PairingIndex::Line_Outside;
         rGeometry.ShapeFunctionsValues(rShapeFunctionValues, local_coords);
@@ -288,7 +291,8 @@ PairingIndex ProjectOnSurface(TGeometryType& rGeometry,
                      const double LocalCoordTol,
                      Vector& rShapeFunctionValues,
                      std::vector<int>& rEquationIds,
-                     double& rDistance)
+                     double& rDistance,
+                     const ComputeApproximation=true)
 {
     Point projected_point;
 
@@ -302,6 +306,8 @@ PairingIndex ProjectOnSurface(TGeometryType& rGeometry,
     if (is_inside) {
         pairing_index = PairingIndex::Surface_Inside;
         rGeometry.ShapeFunctionsValues(rShapeFunctionValues, local_coords);
+    } else if (!ComputeApproximation) {
+        return PairingIndex::Unspecified;
     } else if (!is_inside && std::abs(local_coords[0]) < 1.0+LocalCoordTol && std::abs(local_coords[1]) < 1.0+LocalCoordTol) {
         pairing_index = PairingIndex::Surface_Outside;
         rGeometry.ShapeFunctionsValues(rShapeFunctionValues, local_coords);
