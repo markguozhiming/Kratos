@@ -10,28 +10,12 @@ from __future__ import print_function, absolute_import, division  # makes Kratos
 import KratosMultiphysics
 from KratosMultiphysics.MappingApplication import MapperFactory
 
-def _CreateCoreMortarMapper(model_part_origin, model_part_destination, mapper_settings):
-    # return core mortar mapper
-    raise NotImplementedError
-
-def _CreateApproximateMortarMapper(model_part_origin, model_part_destination, mapper_settings):
-    # return mapper from FSIApp
-    raise NotImplementedError
-
-def _CreateVertexMorphingMapper(model_part_origin, model_part_destination, mapper_settings):
-    # return mapper from ShapeOptApp
-    raise NotImplementedError
-
-def _CreateEmpireMortarMapper(model_part_origin, model_part_destination, mapper_settings):
-    # return mortar mapper from Empire
-    raise NotImplementedError
-
-available_mappers = {
-    "mortar"                      : _CreateCoreMortarMapper,
-    "approximate_mortar"          : _CreateApproximateMortarMapper,
-    "vertex_morphing"             : _CreateVertexMorphingMapper,
-    "empire_mortar"               : _CreateEmpireMortarMapper
-}
+available_mappers = [
+    "mortar" ,
+    "approximate_mortar" ,
+    "vertex_morphing" ,
+    "empire_mortar"
+]
 
 def CreateMapper(model_part_origin, model_part_destination, mapper_settings):
     if not isinstance(mapper_settings, KratosMultiphysics.Parameters):
@@ -42,10 +26,10 @@ def CreateMapper(model_part_origin, model_part_destination, mapper_settings):
     if MapperFactory.HasMapper(mapper_type): # use the MappingApp if it has the requested mapper
         return MapperFactory.CreateMapper(model_part_origin, model_part_destination, mapper_settings)
     elif mapper_type in available_mappers:
-        return available_mappers[mapper_type](model_part_origin, model_part_destination, mapper_settings)
+        return __import__('KratosMultiphysics.MappingApplication.' + mapper_type, fromlist=[mapper_type]).CreateMapper(model_part_origin, model_part_destination, mapper_settings)
     else:
         list_mappers = MapperFactory.GetRegisteredMapperNames()
-        list_mappers.extend(available_mappers.keys())
+        list_mappers.extend(available_mappers)
 
         err_msg  = 'The requested mapper "{}" is not available\n'.format(mapper_type)
         err_msg += 'The following mappers are available:'
