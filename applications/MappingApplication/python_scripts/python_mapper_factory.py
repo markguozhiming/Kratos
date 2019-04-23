@@ -11,9 +11,9 @@ import KratosMultiphysics
 from KratosMultiphysics.MappingApplication import MapperFactory
 
 available_mappers = [
-    "mortar" ,
-    "approximate_mortar" ,
-    "vertex_morphing" ,
+    "mortar",
+    "approximate_mortar",
+    "vertex_morphing",
     "empire_mortar"
 ]
 
