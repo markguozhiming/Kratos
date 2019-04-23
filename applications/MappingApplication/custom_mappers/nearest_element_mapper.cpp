@@ -27,9 +27,58 @@ namespace Kratos {
 typedef std::size_t IndexType;
 typedef std::size_t SizeType;
 
+namespace {
+bool ComputeProjection()
+
+template<class TGeometryType>
+void ComputeProjection(TGeometryType& rGeometry,
+                       const Point& rPointToProject,
+                       const double LocalCoordTol,
+                       Vector& rShapeFunctionValues,
+                       std::vector<int>& rEquationIds,
+                       double& rDistance,
+                       const ComputeApproximation=true)
+{
+    const SizeType num_nodes = p_geom->PointsNumber();
+    const auto geom_family = p_geom->GetGeometryFamily();
+    MapperUtilities::PairingIndex pairing_index = MapperUtilities::PairingIndex::Unspecified;
+    std::vector<int> eq_ids;
+    for (const auto& r_point : p_geom->Points()) {
+        KRATOS_DEBUG_ERROR_IF_NOT(r_point.Has(INTERFACE_EQUATION_ID));
+        eq_ids.push_back(r_point.GetValue(INTERFACE_EQUATION_ID));
+    }
+
+    if (geom_family == GeometryData::Kratos_Linear && num_nodes == 2) { // linear line
+        pairing_index = MapperUtilities::ProjectOnLine(*p_geom, point_to_proj, LocalCoordTol, rShapeFunctionValues, eq_ids, proj_dist, ComputeApproximation);
+    } else if ((geom_family == GeometryData::Kratos_Triangle      && num_nodes == 3) || // linear triangle
+               (geom_family == GeometryData::Kratos_Quadrilateral && num_nodes == 4)) { // linear quad
+        pairing_index = MapperUtilities::ProjectOnSurface(*p_geom, point_to_proj, LocalCoordTol, rShapeFunctionValues, eq_ids, proj_dist, ComputeApproximation);
+    } else if (geom_family == GeometryData::Kratos_Tetrahedra ||
+               geom_family == GeometryData::Kratos_Prism ||
+               geom_family == GeometryData::Kratos_Hexahedra) { // Volume projection
+        pairing_index = MapperUtilities::ProjectIntoVolume(*p_geom, point_to_proj, LocalCoordTol, rShapeFunctionValues, eq_ids, proj_dist, ComputeApproximation);
+        // is_inside = MapperUtilities::ProjectIntoVolume(*p_geom, point_to_proj, local_coords, proj_dist);
+    } else if (ComputeApproximation) {
+        KRATOS_ERROR << "TODO Philipp implement a nearest neighbor here!" << std::endl;
+    }
+
+    const std::size_t num_values = shape_function_values.size();
+    KRATOS_DEBUG_ERROR_IF_NOT(num_values == eq_ids.size()) << "Number of equation-ids is not the same as the number of ShapeFunction values!" << std::endl;
+
+    return pairing_index;
+}
+
+
+}
+
 void NearestElementInterfaceInfo::ProcessSearchResult(const InterfaceObject& rInterfaceObject,
                                                       const double NeighborDistance)
 {
+    ComputeProjection();
+
+
+
+
     const auto p_geom = rInterfaceObject.pGetBaseGeometry();
     const SizeType num_nodes = p_geom->PointsNumber();
 
@@ -99,22 +148,7 @@ void NearestElementInterfaceInfo::ProcessSearchResultForApproximation(const Inte
         eq_ids.push_back(r_point.GetValue(INTERFACE_EQUATION_ID));
     }
 
-    const SizeType num_nodes = p_geom->PointsNumber();
-    const auto geom_family = p_geom->GetGeometryFamily();
-    MapperUtilities::PairingIndex pairing_index;
 
-    if (geom_family == GeometryData::Kratos_Linear && num_nodes == 2) { // linear line
-        pairing_index = MapperUtilities::ProjectOnLine(*p_geom, point_to_proj, 0.5, shape_function_values, eq_ids, proj_dist);
-    } else if ((geom_family == GeometryData::Kratos_Triangle      && num_nodes == 3) || // linear triangle
-               (geom_family == GeometryData::Kratos_Quadrilateral && num_nodes == 4)) { // linear quad
-        pairing_index = MapperUtilities::ProjectOnSurface(*p_geom, point_to_proj, 0.5, shape_function_values, eq_ids, proj_dist);
-    } else if (geom_family == GeometryData::Kratos_Tetrahedra ||
-               geom_family == GeometryData::Kratos_Prism ||
-               geom_family == GeometryData::Kratos_Hexahedra) { // Volume projection
-        // is_inside = MapperUtilities::ProjectIntoVolume(*p_geom, point_to_proj, local_coords, proj_dist);
-    } else {
-        KRATOS_ERROR << "TODO Philipp implement a nearest neighbor here!" << std::endl;
-    }
 
     const std::size_t num_values = shape_function_values.size();
     KRATOS_DEBUG_ERROR_IF_NOT(num_values == eq_ids.size()) << "Number of equation-ids is not the same as the number of ShapeFunction values!" << std::endl;
@@ -132,6 +166,12 @@ void NearestElementInterfaceInfo::ProcessSearchResultForApproximation(const Inte
 
     SetIsApproximation();
 }
+
+void NearestElementInterfaceInfo::SaveSearchResult()
+{
+
+}
+
 
 void NearestElementLocalSystem::CalculateAll(MatrixType& rLocalMappingMatrix,
                     EquationIdVectorType& rOriginIds,
